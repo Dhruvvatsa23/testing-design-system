@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>Hush · Book a pod (prototype)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --moss:#3F4F33; --ink:#2B2A27; --oat:#ECE4D6; --panel:#DCD2C1;
+  --mint:#B5D6B2; --clay:#E0A878; --dclay:#8A4F28; --walnut:#5A3A27;
+  --grey:#5E5A53; --label-ink:#BFB6A6; --card:#F6F1E8;
+  --cond:"Barlow Condensed","Arial Narrow","Roboto Condensed",sans-serif;
+  --sans:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --num:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{background:var(--oat)}
+body{margin:0;background:var(--oat);color:var(--ink);font:400 16px/24px var(--sans)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px;box-shadow:0 0 0 6px var(--oat)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.wrap{max-width:480px;margin:0 auto;padding:16px 20px 48px}
+
+/* Header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0 20px}
+.brand{display:flex;align-items:center;gap:10px}
+.wordmark{font:700 26px/1 var(--cond);letter-spacing:.12em;text-transform:uppercase}
+.proto{font:500 14px/20px var(--sans);color:var(--grey)}
+
+/* Step rail */
+.steps{list-style:none;margin:0 0 28px;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.steps li{font:700 15px/18px var(--cond);letter-spacing:.06em;text-transform:uppercase;color:var(--grey)}
+.steps li::before{content:"";display:block;height:6px;border-radius:3px;border:1.5px solid var(--ink);margin-bottom:8px}
+.steps li.done::before{background:var(--moss);border-color:var(--moss)}
+.steps li[aria-current="step"]{color:var(--ink)}
+.steps li[aria-current="step"]::before{background:var(--ink)}
+.steps .n{font-family:var(--num);font-weight:600;font-variant-numeric:tabular-nums;margin-right:4px}
+
+/* Type */
+h1{font:700 34px/36px var(--cond);text-transform:uppercase;letter-spacing:.02em;margin:0 0 8px}
+h1:focus{outline:none}
+h2{font:700 22px/26px var(--cond);text-transform:uppercase;letter-spacing:.03em;margin:32px 0 12px}
+.lede{margin:0 0 4px}
+.muted{color:var(--grey)}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.label{font:700 15px/18px var(--cond);letter-spacing:.08em;text-transform:uppercase}
+p{margin:0 0 12px}
+
+.back{background:none;border:0;padding:10px 0;min-height:44px;font:500 16px/24px var(--sans);color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer;margin:-12px 0 8px}
+
+/* Choice buttons */
+.choices{display:grid;gap:8px}
+.choices.two{grid-template-columns:1fr 1fr}
+.choices.three{grid-template-columns:repeat(3,1fr)}
+.choices.four{grid-template-columns:repeat(4,1fr)}
+.choice{min-height:48px;padding:10px 12px;border:1.5px solid var(--grey);border-radius:8px;background:var(--card);text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.choice.center{align-items:center;text-align:center}
+.choice[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--oat)}
+.choice[aria-pressed="true"] .muted{color:var(--label-ink)}
+.choice:disabled{background:transparent;border-style:dashed;color:var(--grey);cursor:default}
+.choice .big{font:600 18px/22px var(--sans)}
+.choice small{font:400 14px/18px var(--sans)}
+.times{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.times .choice{align-items:center;font:600 16px/20px var(--num);font-variant-numeric:tabular-nums}
+
+/* Noise meter */
+.level{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.meter{display:inline-flex;gap:3px}
+.meter i{display:block;width:12px;height:8px;border-radius:4px;border:1.5px solid currentColor}
+.meter i.on{background:currentColor}
+
+/* Status pills */
+.state{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.pill{display:inline-block;width:28px;height:14px;border-radius:7px;border:1.5px solid var(--ink)}
+.pill.free{background:var(--mint)}
+.pill.soon{background:linear-gradient(90deg,var(--clay) 50%,transparent 50%)}
+.pill.inuse{background:transparent}
+
+/* Status rows: Room · State · Level · Time */
+.rows{display:grid;gap:8px}
+.row{width:100%;min-height:44px;display:grid;gap:8px;padding:14px 16px;border:1.5px solid var(--grey);border-radius:8px;background:var(--card);text-align:left;cursor:pointer}
+.row .room{font:700 24px/26px var(--cond);text-transform:uppercase;letter-spacing:.03em}
+.row .rail{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center}
+.row .time{font:600 16px/20px var(--num);font-variant-numeric:tabular-nums}
+.row .note{font:400 14px/20px var(--sans);color:var(--grey)}
+.row[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--oat)}
+.row[aria-pressed="true"] .pill{border-color:transparent}
+.row[aria-pressed="true"] .pill.inuse{border-color:var(--oat)}
+.row[aria-pressed="true"] .yours{color:var(--label-ink)}
+.row[aria-disabled="true"]{background:transparent;border-style:dashed;cursor:default}
+.yours{font:700 15px/18px var(--cond);letter-spacing:.08em;text-transform:uppercase}
+
+/* Info lines */
+.crowd{margin:12px 0 0;padding:12px 16px;background:var(--panel);border-radius:8px}
+.crowd strong{font-weight:600}
+.tally{margin:0 0 12px;color:var(--grey)}
+
+/* Primary and secondary actions */
+.actions{margin-top:32px;display:grid;gap:12px}
+.primary{min-height:56px;border:0;border-radius:8px;background:var(--moss);color:var(--oat);font:700 21px/24px var(--cond);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;padding:12px 16px}
+.primary:disabled{background:transparent;border:1.5px dashed var(--grey);color:var(--grey);font:500 16px/22px var(--sans);letter-spacing:0;text-transform:none;cursor:default}
+.secondary{min-height:52px;border:1.5px solid var(--ink);border-radius:8px;background:transparent;font:700 19px/22px var(--cond);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;padding:12px 16px}
+
+/* Summary (confirm) */
+.ticket{background:var(--ink);color:var(--oat);border-radius:10px;padding:4px 18px;margin-top:20px}
+.ticket .line{padding:16px 0;border-bottom:1px solid #4A4843;display:grid;gap:8px}
+.ticket .line:last-child{border-bottom:0}
+.ticket .room{font:700 26px/28px var(--cond);text-transform:uppercase;letter-spacing:.03em}
+.ticket .k{color:var(--label-ink)}
+.ticket .meter i{border-color:var(--oat)}
+.ticket .kv{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.ticket .price{font:600 18px/24px var(--num);font-variant-numeric:tabular-nums}
+.ticket .total .price{font-size:26px;line-height:32px}
+
+/* What to expect */
+.expect{display:grid;gap:4px;margin-top:8px}
+.item{display:grid;grid-template-columns:44px 1fr;gap:14px;padding:16px 0;border-bottom:1px solid var(--panel)}
+.item:last-child{border-bottom:0}
+.tile{width:44px;height:44px;border-radius:8px;background:var(--moss);display:grid;place-items:center}
+.tile svg{width:24px;height:24px;stroke:var(--oat);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.item h3{font:700 19px/22px var(--cond);text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+.item p{margin:0 0 6px}
+.check{display:flex;gap:12px;align-items:flex-start;min-height:44px;padding:12px 16px;background:var(--card);border:1.5px solid var(--grey);border-radius:8px;margin-top:20px;cursor:pointer}
+.check input{width:22px;height:22px;margin:1px 0 0;accent-color:var(--moss);flex:none}
+
+/* Prototype notes */
+details.notes{margin-top:48px;border-top:1.5px solid var(--grey);padding-top:12px}
+details.notes summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font:500 15px/20px var(--sans);color:var(--grey)}
+details.notes ul{margin:8px 0 0;padding-left:20px;color:var(--grey);font-size:15px;line-height:22px}
+details.notes li{margin-bottom:6px}
+
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:380px){.times{grid-template-columns:repeat(3,1fr)}.choices.four{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg width="34" height="34" viewBox="0 0 32 32" role="img" aria-label="Hush symbol">
+        <rect x="2" y="2" width="9" height="28" rx="1.5" fill="#3F4F33"/>
+        <rect x="21" y="2" width="9" height="28" rx="1.5" fill="#3F4F33"/>
+        <path d="M5 5v22M8 5v22M24 5v22M27 5v22" stroke="#5A3A27" stroke-width="1" opacity=".55"/>
+        <rect x="11" y="13.5" width="10" height="5" rx="2.5" fill="#B5D6B2" stroke="#2B2A27" stroke-width="1.2"/>
+      </svg>
+      <span class="wordmark">Hush</span>
+    </div>
+    <span class="proto">Booking prototype</span>
+  </header>
+
+  <main id="app" aria-live="off"></main>
+
+  <details class="notes">
+    <summary>Prototype notes for the Hush team</summary>
+    <ul>
+      <li>Prices, opening hours (08:00 to 21:00), pod availability and seat counts are sample data. Prices are in rupees as a placeholder only.</li>
+      <li>Call booths are booked in 30 or 60 minutes rather than 1, 2 or 4 hours, so one booking doesn’t hold a booth that other Callers need. Check this with real Callers.</li>
+      <li>Here, “Calls OK” is used for call booths only. Whether it’s a pod type, a zone or both is still undecided.</li>
+      <li>Crowd levels use sample thresholds. The real thresholds are still to decide.</li>
+      <li>Wordmark letter spacing is not final. Payment is not part of this prototype.</li>
+      <li>Fonts load from Google Fonts, with system fallbacks when offline.</li>
+    </ul>
+  </details>
+</div>
+
+<script>
+(function(){
+  // ---------- Sample data ----------
+  var OPEN = 480, CLOSE = 1260; // 08:00 to 21:00
+  var LEVELS = {1:"Very quiet", 2:"Quiet", 3:"Soft chatter", 4:"Calls OK"};
+  var PRICES = { pod:{60:250, 120:450, 240:800}, booth:{30:100, 60:180} };
+  var LENGTHS = { pod:[60,120,240], booth:[30,60] };
+  var PODS = [
+    {id:"p1", name:"Pod 1", level:1}, {id:"p2", name:"Pod 2", level:1},
+    {id:"p3", name:"Pod 3", level:2}, {id:"p4", name:"Pod 4", level:2},
+    {id:"p5", name:"Pod 5", level:2}, {id:"p6", name:"Pod 6", level:3},
+    {id:"p7", name:"Pod 7", level:3}, {id:"p8", name:"Pod 8", level:1}
+  ];
+  var BOOTHS = [ {id:"ba", name:"Call booth A", level:4}, {id:"bb", name:"Call booth B", level:4} ];
+  var BUSY = {
+    today: {
+      p1:[[540,660],[780,900]], p2:[[600,840]], p3:[[480,600],[930,1050]],
+      p4:[[660,845]], p5:[[540,780],[1020,1140]], p6:[[720,960]],
+      p7:[[840,900]], p8:[[900,1140]],
+      ba:[[600,630],[840,870],[960,1020]], bb:[[660,720],[900,930]]
+    },
+    tomorrow: {
+      p1:[[600,720]], p2:[[480,780],[960,1080]], p3:[[720,840]],
+      p4:[[540,605],[900,1020]], p5:[[780,960]], p6:[[600,780]],
+      p7:[[480,540],[1080,1200]], p8:[[660,900]],
+      ba:[[570,600],[780,840]], bb:[[600,660],[1020,1050]]
+    }
+  };
+  var SEATS_TOTAL = 40;
+  // Free seats expected per hour from 08:00 to 20:00
+  var FREE_SEATS = {
+    today:    [34,28,19,14,9,11,16,13,10,15,22,27,31],
+    tomorrow: [36,30,24,18,12,14,20,17,15,21,26,30,33]
+  };
+
+  // ---------- Helpers ----------
+  function pad(n){ return (n<10?"0":"")+n; }
+  function fmt(m){ return pad(Math.floor(m/60))+":"+pad(m%60); }
+  function hrs(m){ return m===30 ? "30 minutes" : m===60 ? "1 hour" : (m/60)+" hours"; }
+  function rupees(n){ return "₹"+n.toLocaleString("en-IN"); }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+
+  var now = new Date();
+  var nowMin = now.getHours()*60 + now.getMinutes();
+  var tomorrowDate = new Date(now.getTime()+86400000);
+  function dayLabel(d){ return d.toLocaleDateString("en-GB",{weekday:"short", day:"numeric", month:"short"}); }
+  var DAY_TEXT = { today:"Today, "+dayLabel(now), tomorrow:"Tomorrow, "+dayLabel(tomorrowDate) };
+
+  function startTimes(day){
+    var out=[];
+    for(var t=OPEN; t<=CLOSE-30; t+=30){
+      out.push({t:t, past: day==="today" && t<=nowMin});
+    }
+    return out;
+  }
+  function todayHasTimes(){ return startTimes("today").some(function(x){return !x.past;}); }
+
+  function crowdAt(day,t){
+    var i = Math.max(0, Math.min(FREE_SEATS[day].length-1, Math.floor((t-OPEN)/60)));
+    var free = FREE_SEATS[day][i];
+    // Sample thresholds only: real thresholds are still to decide.
+    var word = free===0 ? "Full" : free>=25 ? "Plenty of space" : free>=12 ? "Some space" : "Filling up";
+    return {word:word, free:free};
+  }
+
+  // Status of a room for a window [s,e): Room · State · Level · Time
+  function statusFor(id, day, s, e){
+    var busy = (BUSY[day][id]||[]).slice().sort(function(a,b){return a[0]-b[0];});
+    var cur = busy.filter(function(b){return b[0]<=s && s<b[1];})[0];
+    if(cur){
+      var freeAt = cur[1], moved = true;
+      while(moved){ moved=false; busy.forEach(function(b){ if(b[0]<=freeAt && freeAt<b[1]){ freeAt=b[1]; moved=true; } }); }
+      var soon = freeAt - s <= 10;
+      return { state: soon ? "soon" : "inuse", word: soon ? "Opens soon" : "In use", time:"Free at "+fmt(freeAt), ok:false,
+               note: soon ? "Opens a few minutes after your start time." : null };
+    }
+    var until = CLOSE;
+    busy.forEach(function(b){ if(b[0]>s && b[0]<until) until=b[0]; });
+    if(until>=e) return { state:"free", word:"Free", time:"Until "+fmt(until), ok:true };
+    return { state:"free", word:"Free", time:"Until "+fmt(until), ok:false, note:"Free for less than your booking." };
+  }
+
+  // ---------- Icons (24 grid, 2 px stroke, round ends) ----------
+  var ICON = {
+    door:'<path d="M4 21h16"/><rect x="7" y="7" width="10" height="14"/><circle cx="12" cy="3.5" r="1"/><path d="M14.5 14h.01"/>',
+    plug:'<path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4"/>',
+    wifi:'<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><path d="M12 19.5h.01"/>',
+    screen:'<rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    cup:'<path d="M5 9h11v4a5.5 5.5 0 0 1-11 0zM16 10h1.5a2.5 2.5 0 0 1 0 5H16M8 3v3M12 3v3"/>'
+  };
+  function tile(name){ return '<span class="tile" aria-hidden="true"><svg viewBox="0 0 24 24">'+ICON[name]+'</svg></span>'; }
+
+  function meter(level){
+    var p=""; for(var i=1;i<=4;i++) p+='<i class="'+(i<=level?"on":"")+'"></i>';
+    return '<span class="level"><span class="meter" aria-hidden="true">'+p+'</span><span>'+LEVELS[level]+'</span></span>';
+  }
+  function statePill(st){ return '<span class="state"><span class="pill '+st.state+'" aria-hidden="true"></span><span>'+st.word+'</span></span>'; }
+
+  // ---------- State ----------
+  var S = {
+    step:1, mode:"pod", day: todayHasTimes() ? "today" : "tomorrow",
+    start:null, len:null, level:0, pod:null,
+    boothOn:false, bStart:null, bLen:null, booth:null, remind:false
+  };
+  function podById(id){ return PODS.filter(function(p){return p.id===id;})[0]; }
+  function boothById(id){ return BOOTHS.filter(function(b){return b.id===id;})[0]; }
+  function end(){ return S.start + S.len; }
+  function bEnd(){ return S.bStart + S.bLen; }
+  function bookingRoom(){ return S.mode==="pod" ? podById(S.pod) : boothById(S.booth); }
+
+  // ---------- Views ----------
+  function stepRail(){
+    var names = ["Time", S.mode==="pod" ? "Pod" : "Booth", "Confirm", "What to expect"];
+    return '<ol class="steps" aria-label="Booking steps">'+names.map(function(n,i){
+      var k=i+1, cls = k<S.step ? "done" : "";
+      return '<li class="'+cls+'"'+(k===S.step?' aria-current="step"':'')+'><span class="n">'+k+'</span>'+n+'</li>';
+    }).join("")+'</ol>';
+  }
+
+  function crowdLine(t){
+    var c = crowdAt(S.day, t);
+    return '<p class="crowd">Expected at <span class="num">'+fmt(t)+'</span>: <strong>'+c.word+'</strong> · <span class="num">'+c.free+' of '+SEATS_TOTAL+'</span> seats free</p>';
+  }
+
+  function viewTime(){
+    var h = '<h1 tabindex="-1">Book a pod</h1><p class="lede">Pick a time first. You’ll see the pods free for that time next.</p>';
+
+    h += '<h2>What you need</h2><div class="choices two">'
+      + choiceBtn("mode:pod", S.mode==="pod", '<span class="big">A seat in a pod</span><small class="muted">1, 2 or 4 hours</small>')
+      + choiceBtn("mode:booth", S.mode==="booth", '<span class="big">A call booth only</span><small class="muted">30 or 60 minutes</small>')
+      + '</div>';
+    if(S.mode==="pod") h += '<p class="muted" style="margin-top:10px">Got a call during your visit? You can add a call booth when you choose your pod.</p>';
+
+    var hasToday = todayHasTimes();
+    h += '<h2>Day</h2><div class="choices two">'
+      + choiceBtn("day:today", S.day==="today", '<span class="big">Today</span><small class="muted">'+(hasToday?dayLabel(now):"No times left today")+'</small>', !hasToday)
+      + choiceBtn("day:tomorrow", S.day==="tomorrow", '<span class="big">Tomorrow</span><small class="muted">'+dayLabel(tomorrowDate)+'</small>')
+      + '</div>';
+
+    h += '<h2>Start time</h2><div class="times">';
+    startTimes(S.day).forEach(function(x){
+      h += '<button type="button" class="choice" data-act="start:'+x.t+'" aria-pressed="'+(S.start===x.t)+'"'+(x.past?' disabled aria-label="'+fmt(x.t)+', already passed"':'')+'>'+fmt(x.t)+'</button>';
+    });
+    h += '</div>';
+
+    h += '<h2>Length</h2><p class="muted">Sample prices.</p><div class="choices '+(S.mode==="pod"?"three":"two")+'">';
+    LENGTHS[S.mode].forEach(function(m){
+      var tooLate = S.start!==null && S.start+m>CLOSE;
+      h += choiceBtn("len:"+m, S.len===m,
+        '<span class="big">'+hrs(m)+'</span><small class="'+(S.len===m?"":"muted")+' num">'+(tooLate ? "Ends after 21:00" : rupees(PRICES[S.mode][m]))+'</small>', tooLate, "center");
+    });
+    h += '</div>';
+
+    if(S.start!==null && S.len) h += '<p style="margin-top:16px">Your booking: <span class="num">'+fmt(S.start)+'</span> to <span class="num">'+fmt(end())+'</span>.</p>';
+    if(S.start!==null) h += crowdLine(S.start);
+
+    var ready = S.start!==null && S.len && end()<=CLOSE;
+    h += '<div class="actions">'+(ready
+      ? '<button type="button" class="primary" data-act="next">'+(S.mode==="pod"?"Choose a pod":"Choose a booth")+'</button>'
+      : '<button type="button" class="primary" disabled>Choose a start time and length to continue</button>')+'</div>';
+    return h;
+  }
+
+  function roomRow(room, st, selected, act){
+    var off = !st.ok;
+    return '<button type="button" class="row" data-act="'+(off?"none":act)+'" aria-pressed="'+selected+'"'+(off?' aria-disabled="true"':'')+'>'
+      + '<span class="room">'+esc(room.name)+'</span>'
+      + '<span class="rail">'+statePill(st)+meter(room.level)+'<span class="time">'+st.time+'</span></span>'
+      + (st.note ? '<span class="note">'+st.note+'</span>' : '')
+      + (selected ? '<span class="yours">Selected</span>' : '')
+      + '</button>';
+  }
+
+  function viewPod(){
+    var s=S.start, e=end();
+    var h = '<button type="button" class="back" data-act="back">Back</button>'
+      + '<h1 tabindex="-1">Choose a pod</h1>'
+      + '<p class="lede">'+DAY_TEXT[S.day]+', <span class="num">'+fmt(s)+'</span> to <span class="num">'+fmt(e)+'</span>.</p>'
+      + crowdLine(s);
+
+    h += '<h2>Noise level</h2><div class="choices four">'
+      + choiceBtn("level:0", S.level===0, '<span class="big">Any</span>', false, "center");
+    [1,2,3].forEach(function(l){ h += choiceBtn("level:"+l, S.level===l, meter(l), false); });
+    h += '</div>';
+
+    var list = PODS.filter(function(p){ return !S.level || p.level===S.level; });
+    var free = list.filter(function(p){ return statusFor(p.id,S.day,s,e).ok; }).length;
+    h += '<h2>Pods</h2><p class="tally"><span class="num">'+free+' of '+list.length+'</span> pods free for your time.</p><div class="rows">';
+    list.forEach(function(p){ h += roomRow(p, statusFor(p.id,S.day,s,e), S.pod===p.id, "pod:"+p.id); });
+    h += '</div>';
+
+    if(S.pod){
+      h += '<h2>Call booth</h2><p>Pods are for focus. If you have a call between <span class="num">'+fmt(s)+'</span> and <span class="num">'+fmt(e)+'</span>, you can book a call booth for it too.</p>'
+        + '<div class="choices two">'
+        + choiceBtn("booth:off", !S.boothOn, '<span class="big">No call booth</span>')
+        + choiceBtn("booth:on", S.boothOn, '<span class="big">Add a call booth</span>')
+        + '</div>';
+      if(S.boothOn) h += boothPicker(s, e, true);
+    }
+
+    var ready = S.pod && (!S.boothOn || S.booth);
+    h += '<div class="actions">'+(ready
+      ? '<button type="button" class="primary" data-act="next">Check booking</button>'
+      : '<button type="button" class="primary" disabled>'+(S.pod ? "Choose a call start, length and booth to continue" : "Choose a pod to continue")+'</button>')+'</div>';
+    return h;
+  }
+
+  // Booth picker used inside the pod step (within the pod window)
+  function boothPicker(s, e){
+    var h = '<h2 style="margin-top:24px">Call starts at</h2><div class="times">';
+    for(var t=s; t<=e-30; t+=30){
+      h += '<button type="button" class="choice" data-act="bstart:'+t+'" aria-pressed="'+(S.bStart===t)+'">'+fmt(t)+'</button>';
+    }
+    h += '</div><h2>Booth length</h2><div class="choices two">';
+    LENGTHS.booth.forEach(function(m){
+      var tooLong = S.bStart!==null && S.bStart+m>e;
+      h += choiceBtn("blen:"+m, S.bLen===m, '<span class="big">'+hrs(m)+'</span><small class="'+(S.bLen===m?"":"muted")+' num">'+(tooLong ? "Past your pod time" : rupees(PRICES.booth[m]))+'</small>', tooLong, "center");
+    });
+    h += '</div>';
+    if(S.bStart!==null && S.bLen){
+      h += '<h2>Booths</h2><div class="rows">';
+      BOOTHS.forEach(function(b){ h += roomRow(b, statusFor(b.id,S.day,S.bStart,bEnd()), S.booth===b.id, "pickbooth:"+b.id); });
+      h += '</div>';
+    }
+    return h;
+  }
+
+  function viewBooth(){
+    var s=S.start, e=end();
+    var h = '<button type="button" class="back" data-act="back">Back</button>'
+      + '<h1 tabindex="-1">Choose a booth</h1>'
+      + '<p class="lede">'+DAY_TEXT[S.day]+', <span class="num">'+fmt(s)+'</span> to <span class="num">'+fmt(e)+'</span>.</p>'
+      + '<p class="muted">Every call booth is Calls OK, so you can talk at your normal volume.</p>'
+      + crowdLine(s);
+    h += '<h2>Booths</h2><div class="rows">';
+    BOOTHS.forEach(function(b){ h += roomRow(b, statusFor(b.id,S.day,s,e), S.booth===b.id, "pickbooth:"+b.id); });
+    h += '</div>';
+    h += '<div class="actions">'+(S.booth
+      ? '<button type="button" class="primary" data-act="next">Check booking</button>'
+      : '<button type="button" class="primary" disabled>Choose a booth to continue</button>')+'</div>';
+    return h;
+  }
+
+  function ticketLine(room, from, to, price){
+    return '<div class="line">'
+      + '<span class="room">'+esc(room.name)+'</span>'
+      + '<div class="kv"><span class="k">'+DAY_TEXT[S.day]+'</span><span class="num">'+fmt(from)+' to '+fmt(to)+'</span></div>'
+      + '<div class="kv"><span class="meterwrap">'+meter(room.level)+'</span><span class="price">'+rupees(price)+'</span></div>'
+      + '</div>';
+  }
+
+  function total(){
+    if(S.mode==="booth") return PRICES.booth[S.len];
+    return PRICES.pod[S.len] + (S.boothOn ? PRICES.booth[S.bLen] : 0);
+  }
+
+  function viewConfirm(){
+    var room = bookingRoom();
+    var h = '<button type="button" class="back" data-act="back">Back</button>'
+      + '<h1 tabindex="-1">Check your booking</h1>'
+      + '<p class="lede">Nothing is booked until you tap the button below.</p>'
+      + '<div class="ticket">';
+    if(S.mode==="pod"){
+      h += ticketLine(room, S.start, end(), PRICES.pod[S.len]);
+      if(S.boothOn) h += ticketLine(boothById(S.booth), S.bStart, bEnd(), PRICES.booth[S.bLen]);
+    } else {
+      h += ticketLine(room, S.start, end(), PRICES.booth[S.len]);
+    }
+    h += '<div class="line total"><div class="kv"><span class="label">Total, sample price</span><span class="price">'+rupees(total())+'</span></div></div></div>';
+    h += '<p class="muted" style="margin-top:12px">Payment isn’t part of this prototype.</p>';
+
+    var label = "Book "+room.name + (S.mode==="pod" && S.boothOn ? " and "+boothById(S.booth).name.replace("Call booth","booth") : "");
+    h += '<div class="actions"><button type="button" class="primary" data-act="book">'+esc(label)+'</button></div>';
+    return h;
+  }
+
+  function item(icon, title, body){
+    return '<div class="item">'+tile(icon)+'<div><h3>'+title+'</h3>'+body+'</div></div>';
+  }
+
+  function viewExpect(){
+    var room = bookingRoom(), s=S.start, e=end();
+    var h = '<h1 tabindex="-1">You’re booked</h1>'
+      + '<p class="lede">'+esc(room.name)+' is yours '+(S.day==="today"?"today":"tomorrow")+' from <span class="num">'+fmt(s)+'</span> to <span class="num">'+fmt(e)+'</span>.'
+      + (S.mode==="pod" && S.boothOn ? ' '+esc(boothById(S.booth).name)+' is yours from <span class="num">'+fmt(S.bStart)+'</span> to <span class="num">'+fmt(bEnd())+'</span>.' : '')
+      + '</p>';
+
+    h += '<h2>What to expect</h2><div class="expect">';
+
+    h += item("screen", "When you arrive",
+      '<p>Find '+esc(room.name)+' on the entrance screen. Every room is listed the same way: room, state, level, time.</p>'
+      + '<p>Its door panel is beside the door, at the same height as every other panel.</p>');
+
+    if(S.mode==="pod"){
+      h += item("door", "Your pod", '<p>'+meter(room.level)+'</p><p>'+esc(room.name)+' is '+LEVELS[room.level]+', the level shown on its door panel.</p>');
+      h += item("plug", "At your seat", '<p>There’s a plug at your seat, fast Wi-Fi and free refills. You won’t need to ask for anything.</p>');
+      if(S.boothOn){
+        var b = boothById(S.booth);
+        h += item("door", "Your call",
+          '<p>'+esc(b.name)+' is yours from <span class="num">'+fmt(S.bStart)+'</span> to <span class="num">'+fmt(bEnd())+'</span>. It’s Calls OK, so talk at your normal volume.</p>'
+          + '<p>Your pod stays yours while you’re on the call.</p>');
+      } else {
+        h += item("door", "If a call comes up", '<p>Call booths are Calls OK and are booked separately, in 30 or 60 minutes.</p>');
+      }
+    } else {
+      h += item("door", "Your booth", '<p>'+meter(room.level)+'</p><p>'+esc(room.name)+' is Calls OK, so talk at your normal volume. There’s a plug and fast Wi-Fi inside.</p>');
+    }
+
+    var warn = e - 10;
+    h += item("clock", "When it ends",
+      '<p>At <span class="num">'+fmt(warn)+'</span> your door panel shows Opens soon. Your booking ends at <span class="num">'+fmt(e)+'</span>.</p>'
+      + '<p>Lights change on the minute and never blink. Nobody will come to your seat to remind you.</p>');
+    h += '</div>';
+
+    h += '<label class="check"><input type="checkbox" data-act="remind"'+(S.remind?" checked":"")+'>'
+      + '<span>Send me one reminder at <span class="num">'+fmt(warn)+'</span>, ten minutes before my booking ends.</span></label>';
+
+    h += '<div class="actions"><button type="button" class="secondary" data-act="restart">Make another booking</button></div>';
+    return h;
+  }
+
+  function choiceBtn(act, pressed, inner, disabled, extra){
+    return '<button type="button" class="choice '+(extra||"")+'" data-act="'+act+'" aria-pressed="'+(!!pressed)+'"'+(disabled?" disabled":"")+'>'+inner+'</button>';
+  }
+
+  // ---------- Render ----------
+  var app = document.getElementById("app");
+  function render(stepChanged){
+    var focusKey = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute("data-act");
+    var body;
+    if(S.step===1) body = viewTime();
+    else if(S.step===2) body = S.mode==="pod" ? viewPod() : viewBooth();
+    else if(S.step===3) body = viewConfirm();
+    else body = viewExpect();
+    app.innerHTML = stepRail() + body;
+    if(stepChanged){
+      window.scrollTo(0,0);
+      var h1 = app.querySelector("h1"); if(h1) h1.focus();
+    } else if(focusKey){
+      var el = app.querySelector('[data-act="'+focusKey+'"]'); if(el) el.focus();
+    }
+  }
+
+  function resetChoices(){ S.pod=null; S.booth=null; S.boothOn=false; S.bStart=null; S.bLen=null; }
+
+  app.addEventListener("change", function(ev){
+    if(ev.target.getAttribute("data-act")==="remind"){ S.remind = ev.target.checked; }
+  });
+
+  app.addEventListener("click", function(ev){
+    var btn = ev.target.closest("[data-act]");
+    if(!btn || btn.tagName==="INPUT") return;
+    var parts = btn.getAttribute("data-act").split(":"), a = parts[0], v = parts[1];
+    var stepChanged = false;
+    switch(a){
+      case "none": return;
+      case "mode": if(S.mode!==v){ S.mode=v; S.len=null; resetChoices(); } break;
+      case "day": if(S.day!==v){ S.day=v; S.start=null; resetChoices(); } break;
+      case "start": S.start=+v; if(S.len && S.start+S.len>CLOSE) S.len=null; resetChoices(); break;
+      case "len": S.len=+v; resetChoices(); break;
+      case "level": S.level=+v; if(S.pod && S.level && podById(S.pod).level!==S.level) S.pod=null; break;
+      case "pod": S.pod=v; break;
+      case "booth":
+        S.boothOn = v==="on";
+        if(!S.boothOn){ S.booth=null; S.bStart=null; S.bLen=null; }
+        break;
+      case "bstart": S.bStart=+v; if(S.bLen && S.bStart+S.bLen>end()) S.bLen=null; S.booth=null; break;
+      case "blen": S.bLen=+v; S.booth=null; break;
+      case "pickbooth": S.booth=v; break;
+      case "next": S.step++; stepChanged=true; break;
+      case "back": S.step--; stepChanged=true; break;
+      case "book": S.step=4; stepChanged=true; break;
+      case "restart":
+        S = { step:1, mode:"pod", day: todayHasTimes() ? "today" : "tomorrow", start:null, len:null, level:0, pod:null,
+              boothOn:false, bStart:null, bLen:null, booth:null, remind:false };
+        stepChanged=true; break;
+    }
+    render(stepChanged);
+  });
+
+  render(false);
+})();
+</script>
+</body>
+</html>
